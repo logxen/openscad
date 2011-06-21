@@ -516,9 +516,62 @@ void MainWindow::load()
 			QString text = QTextStream(&file).readAll();
 			PRINTA("Loaded design `%1'.", this->fileName);
 			editor->setPlainText(text);
+			parseModeline(text);
 		}
 	}
 	setCurrentOutput();
+}
+
+void MainWindow::parseModeline(const QString text)
+{
+	QRegExp modelinestart("\\sscad:");
+	QRegExp modelinepart("\\s*((?:no)?editor|(?:no)?console|(?:no)?autoreload|(?:no)?axes|(?:no)?crosshairs|(?:no)?edges|opencsg|cgalsurfaces|cgalgrid|throwntogether)\\s*:?");
+
+	int pos = modelinestart.indexIn(text);
+	if (pos == -1) return;
+	while ((pos = modelinepart.indexIn(text, pos)) != -1) {
+		pos += modelinepart.matchedLength();
+
+		QString match = modelinepart.cap(1);
+		if (match.endsWith("editor")) {
+			editActionHide->setChecked(match.startsWith("no"));
+			hideEditor();
+		}
+		if (match.endsWith("console")) {
+			viewActionHide->setChecked(match.startsWith("no"));
+			hideConsole();
+		}
+		if (match.endsWith("autoreload"))
+			designActionAutoReload->setChecked(!match.startsWith("no"));
+		if (match.endsWith("axes")) {
+			viewActionShowAxes->setChecked(!match.startsWith("no"));
+			viewModeShowAxes();
+		}
+		if (match.endsWith("crosshairs")) {
+			viewActionShowCrosshairs->setChecked(!match.startsWith("no"));
+			viewModeShowCrosshairs();
+		}
+		if (match.endsWith("edges")) {
+			viewActionShowEdges->setChecked(!match.startsWith("no"));
+			viewModeShowEdges();
+		}
+		if (match == "opencsg") {
+			viewActionOpenCSG->setChecked(true);
+			viewModeOpenCSG();
+		}
+		if (match == "cgalsurfaces") {
+			viewActionCGALSurfaces->setChecked(true);
+			viewModeCGALSurface();
+		}
+		if (match == "cgalgrid") {
+			viewActionCGALGrid->setChecked(true);
+			viewModeCGALGrid();
+		}
+		if (match == "throwntogether") {
+			viewActionThrownTogether->setChecked(true);
+			viewModeThrownTogether();
+		}
+	}
 }
 
 AbstractNode *MainWindow::find_root_tag(AbstractNode *n)
