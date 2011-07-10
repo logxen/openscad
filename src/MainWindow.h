@@ -80,6 +80,8 @@ private:
 		static_cast<MainWindow*>(userdata)->console->append(msg);
 	}
 	void parseModeline(const QString text);
+	void loadViewSettings();
+	void loadDesignSettings();
 
 private slots:
 	void actionNew();
