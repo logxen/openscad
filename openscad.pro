@@ -245,6 +245,7 @@ SOURCES += src/mathc99.cc \
            src/import.cc \
            src/renderer.cc \
            src/ThrownTogetherRenderer.cc \
+           src/CGAL_renderer.cc \
            src/dxftess.cc \
            src/dxftess-glu.cc \
            src/dxftess-cgal.cc \

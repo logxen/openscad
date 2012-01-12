@@ -339,14 +339,15 @@ set(NOCGAL_SOURCES
 
 set(CGAL_SOURCES
   ${NOCGAL_SOURCES}
-	  ../src/CSGTermEvaluator.cc 
+  ../src/CSGTermEvaluator.cc 
   ../src/CGAL_Nef_polyhedron.cc 
   ../src/cgalutils.cc 
   ../src/CGALEvaluator.cc
   ../src/CGALCache.cc
   ../src/PolySetCGALEvaluator.cc
   ../src/CGAL_Nef_polyhedron_DxfData.cc
-  ../src/cgaladv_minkowski2.cc)
+  ../src/cgaladv_minkowski2.cc
+  ../src/CGAL_renderer.cc)
 
 set(COMMON_SOURCES
   ../src/nodedumper.cc 
