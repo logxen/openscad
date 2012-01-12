@@ -275,6 +275,7 @@ namespace OGL {
     Bbox_3  bbox_;
 
     int style;
+
     std::vector<bool> switches;
 
     typedef std::list<DPoint>::const_iterator   Vertex_iterator;

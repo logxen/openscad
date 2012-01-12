@@ -27,7 +27,8 @@
 #ifndef CGAL_RENDERER_H
 #define CGAL_RENDERER_H
 
-#include "OGL_helper.h"
+#include <CGAL/Nef_3/OGL_helper.h>
+
 #undef CGAL_NEF3_MARKED_VERTEX_COLOR
 #undef CGAL_NEF3_MARKED_EDGE_COLOR
 #undef CGAL_NEF3_MARKED_FACET_COLOR
@@ -38,6 +39,49 @@
 
 using CGAL::OGL::SNC_BOUNDARY;
 using CGAL::OGL::SNC_SKELETON;
+
+// Originally from https://gist.github.com/1528856
+// Modified to allow access two rather than one private member.
+// This is needed because CGAL::OGL::Polyhedron has private members
+// that we need access to.
+
+// Generate a static data member of type Tag::type in which to store
+// the address of a private member. It is crucial that Tag does not
+// depend on the /value/ of the the stored address in any way so that
+// we can access it from ordinary code without directly touching
+// private data.
+template <class Tag>
+struct stowed
+{
+    static typename Tag::style_type style;
+    static typename Tag::object_list_type object_list_;
+};
+template <class Tag>
+typename Tag::style_type stowed<Tag>::style;
+template <class Tag>
+typename Tag::object_list_type stowed<Tag>::object_list_;
+
+// Generate a static data member whose constructor initializes
+// stowed<Tag>::value. This type will only be named in an explicit
+// instantiation, where it is legal to pass the address of a private
+// member.
+template <class Tag, typename Tag::style_type Style, typename Tag::object_list_type Object_list_>
+struct stow_private
+{
+ stow_private()
+ {
+   stowed<Tag>::style = Style;
+   stowed<Tag>::object_list_ = Object_list_;
+
+ }
+ static stow_private instance;
+};
+
+struct Polyhedron_private
+{
+ typedef int(CGAL::OGL::Polyhedron::*style_type);
+ typedef GLuint(CGAL::OGL::Polyhedron::*object_list_type);
+};
 
 class Polyhedron : public CGAL::OGL::Polyhedron
 {
@@ -53,7 +97,7 @@ public:
 		NUM_COLORS
 	};
 
-	Polyhedron() {
+ Polyhedron() {
 		setColor(CGAL_NEF3_MARKED_VERTEX_COLOR,0xb7,0xe8,0x5c);
 		setColor(CGAL_NEF3_MARKED_EDGE_COLOR,0xab,0xd8,0x56);
 		setColor(CGAL_NEF3_MARKED_FACET_COLOR,0x9d,0xcb,0x51);
@@ -63,30 +107,30 @@ public:
 	}
 
 	void draw(bool showedges) const {
-		if(this->style == SNC_BOUNDARY) {
-			glCallList(this->object_list_+2);
+         if(this->*stowed<Polyhedron_private>::style == SNC_BOUNDARY) {
+			glCallList(this->*stowed<Polyhedron_private>::object_list_+2);
 			if(showedges) {
 				glDisable(GL_LIGHTING);
-				glCallList(this->object_list_+1);
-				glCallList(this->object_list_);
+				glCallList(this->*stowed<Polyhedron_private>::object_list_+1);
+				glCallList(this->*stowed<Polyhedron_private>::object_list_);
 			}
 		} else {
 			glDisable(GL_LIGHTING);
-			glCallList(this->object_list_+1);
-			glCallList(this->object_list_);
+			glCallList(this->*stowed<Polyhedron_private>::object_list_+1);
+			glCallList(this->*stowed<Polyhedron_private>::object_list_);
 		}
 	}
-	CGAL::Color getVertexColor(Vertex_iterator v) const {
+	CGAL::Color getVertexColor(std::list<CGAL::OGL::DPoint>::const_iterator v) const {
 		CGAL::Color c = v->mark() ? colors[CGAL_NEF3_UNMARKED_VERTEX_COLOR] : colors[CGAL_NEF3_MARKED_VERTEX_COLOR];
 		return c;
 	}
 
-	CGAL::Color getEdgeColor(Edge_iterator e) const {
+ CGAL::Color getEdgeColor(std::list<CGAL::OGL::DSegment>::const_iterator e) const {
 		CGAL::Color c = e->mark() ? colors[CGAL_NEF3_UNMARKED_EDGE_COLOR] : colors[CGAL_NEF3_MARKED_EDGE_COLOR];
 		return c;
 	}
 
-	CGAL::Color getFacetColor(Halffacet_iterator f) const {
+	CGAL::Color getFacetColor(std::list<CGAL::OGL::DFacet>::const_iterator f) const {
 		CGAL::Color c = f->mark() ? colors[CGAL_NEF3_UNMARKED_FACET_COLOR] : colors[CGAL_NEF3_MARKED_FACET_COLOR];
 		return c;
 	}
